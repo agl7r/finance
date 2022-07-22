@@ -10,8 +10,19 @@ type Type struct {
 	Title string
 }
 
-func GetTypes() []*Type {
-	var types []*Type
+type Types []*Type
+
+func (types *Types) GetById(id int) *Type {
+	for _, t := range *types {
+		if t.Id == id {
+			return t
+		}
+	}
+	return nil
+}
+
+func GetTypes() *Types {
+	types := new(Types)
 
 	content, _ := ioutil.ReadFile("var/apartment/types.json")
 	_ = json.Unmarshal(content, &types)

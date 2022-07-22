@@ -8,9 +8,12 @@ import (
 func main() {
 	types := apartment.GetTypes()
 
-	for _, t := range types {
+	for _, t := range *types {
 		fmt.Printf("%d %s\n", t.Id, t.Title)
 	}
+
+	internetType := types.GetById(5)
+	fmt.Printf("\nInternet: %d %s\n", internetType.Id, internetType.Title)
 
 	fmt.Printf("\n")
 	month := apartment.CurrentMonth()
