@@ -1,15 +1,24 @@
 package apartment
 
 import (
+	"strings"
 	"time"
 )
 
-type Period struct {
+type Month struct {
 	Id string
 }
 
-type Month struct {
-	Period
+func (month *Month) String() string {
+	return month.Id
+}
+
+func (month *Month) Y() string {
+	return strings.Split(month.Id, "-")[0]
+}
+
+func (month *Month) M() string {
+	return strings.Split(month.Id, "-")[1]
 }
 
 func (month *Month) NextMonth() *Month {
@@ -21,11 +30,4 @@ func (month *Month) NextMonth() *Month {
 	nextMonth.Id = monthTime.Format("2006-01")
 
 	return nextMonth
-}
-
-func CurrentMonth() *Month {
-	month := new(Month)
-	currentTime := time.Now()
-	month.Id = currentTime.Format("2006-01")
-	return month
 }

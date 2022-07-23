@@ -10,6 +10,10 @@ type Type struct {
 	Title string
 }
 
+func (_type *Type) String() string {
+	return _type.Title
+}
+
 type Types []*Type
 
 func (types *Types) GetById(id int) *Type {
