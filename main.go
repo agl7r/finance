@@ -26,27 +26,17 @@ func main() {
 
 	fmt.Printf("\n")
 
-	var payments apartment.CommunalPayments
+	repository := apartment.NewPaymentRepository()
 
-	amount, _ := currency.NewAmount("450", "RUB")
-
-	payments = append(
-		payments,
-		apartment.NewCommunalPayment(month, internetType, amount),
-	)
-
-	payments = append(
-		payments,
-		apartment.NewCommunalPayment(nextMonth, internetType, amount),
-	)
-
-	payments = append(
-		payments,
-		apartment.NewCommunalPayment(nextNextMonth, internetType, amount),
-	)
+	payments, _ := repository.FindAll()
 
 	for _, payment := range payments {
 		fmt.Printf("%s %d %s\n", payment.Month.Id, payment.Type.Id, payment.Amount)
 	}
 	fmt.Printf("Total: %s\n", payments.GetTotal())
+
+	a, _ := currency.NewAmount("300", "RUB")
+	month.Id = "2022-01"
+	p := apartment.NewCommunalPayment(month, internetType, a)
+	_ = repository.Save(p)
 }
