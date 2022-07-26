@@ -5,6 +5,7 @@ import (
 	"github.com/agl7r/finance/apartment"
 	"github.com/bojanz/currency"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -13,8 +14,8 @@ func main() {
 	switch getCommand() {
 	case "add-payment":
 		handleAddPaymentCommand(os.Args[2:])
-	case "show-payments":
-		handleShowPayments()
+	case "payments", "show-payments", "list-payments":
+		handleShowPayments(os.Args[2:])
 	}
 }
 
@@ -78,10 +79,23 @@ func handleAddPaymentCommand(args []string) {
 	fmt.Printf("Платёж добавлен\n")
 }
 
-func handleShowPayments() {
+func handleShowPayments(args []string) {
 	repository := apartment.NewPaymentRepository()
 	payments, _ := repository.FindAll()
 
+	showMode := "table"
+	if len(args) > 0 {
+		showMode = args[0]
+	}
+
+	if showMode == "tree" {
+		PrintTree(payments)
+	} else {
+		PrintTable(payments)
+	}
+}
+
+func BuildTree(payments apartment.CommunalPayments) map[string]map[string]apartment.CommunalPayments {
 	tree := make(map[string]map[string]apartment.CommunalPayments)
 
 	for _, payment := range payments {
@@ -91,6 +105,12 @@ func handleShowPayments() {
 		tree[payment.Month.Y()][payment.Month.M()] = append(tree[payment.Month.Y()][payment.Month.M()], payment)
 	}
 
+	return tree
+}
+
+func PrintTree(payments apartment.CommunalPayments) {
+	tree := BuildTree(payments)
+
 	for y, subtree := range tree {
 		fmt.Printf("%s\n", y)
 		for m, monthPayments := range subtree {
@@ -99,6 +119,39 @@ func handleShowPayments() {
 				fmt.Printf("      %s: %s\n", payment.Type, payment.Amount)
 			}
 			fmt.Printf("          Итого: %s\n\n", monthPayments.GetTotal())
+		}
+	}
+}
+
+func PrintTable(payments apartment.CommunalPayments) {
+	tree := BuildTree(payments)
+
+	for y, subtree := range tree {
+		fmt.Printf("%s", y)
+
+		types := *apartment.GetTypes()
+		for _, _type := range types {
+			fmt.Printf("%15s", _type.Title)
+		}
+		fmt.Printf("%15s\n", "Итого")
+
+		var keys []string
+		for key, _ := range subtree {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+
+		for _, m := range keys {
+			fmt.Printf("  %s", m)
+
+			monthPayments := tree[y][m]
+
+			for _, _type := range types {
+				fmt.Printf("%15s", monthPayments.FindByType(_type).Amount.Number())
+			}
+
+			fmt.Printf("%15s", monthPayments.GetTotal().Number())
+			fmt.Printf("\n")
 		}
 	}
 }

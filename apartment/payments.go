@@ -10,6 +10,15 @@ type CommunalPayment struct {
 
 type CommunalPayments []*CommunalPayment
 
+func (payments *CommunalPayments) FindByType(_type *Type) *CommunalPayment {
+	for _, p := range *payments {
+		if p.Type.Id == _type.Id {
+			return p
+		}
+	}
+	return nil
+}
+
 func (payments *CommunalPayments) GetTotal() currency.Amount {
 	var total currency.Amount
 
