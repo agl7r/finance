@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -28,12 +29,11 @@ func getCommand() string {
 }
 
 func handleAddPaymentCommand(args []string) {
-	monthId := args[0]
-
 	if len(args) < 1 {
 		fmt.Print("Укажите месяц в формате 2022-04\n")
 		return
 	}
+	monthId := args[0]
 	date, err := time.Parse("2006-01", monthId)
 	if err != nil {
 		fmt.Printf("Укажите месяц в формате 2022-04\n")
@@ -42,7 +42,14 @@ func handleAddPaymentCommand(args []string) {
 	month := &apartment.Month{Id: date.Format("2006-01")}
 
 	if len(args) < 2 {
-		fmt.Print("Укажите тип в формате идентификатора\n")
+		typesOutput := ""
+		for i, _type := range *apartment.GetTypes() {
+			if i > 0 {
+				typesOutput = typesOutput + ", "
+			}
+			typesOutput = typesOutput + fmt.Sprintf("%d: %s", _type.Id, _type.Title)
+		}
+		fmt.Printf("Укажите тип в формате идентификатора (%s)\n", typesOutput)
 		return
 	}
 	typeId, err := strconv.Atoi(args[1])
@@ -62,7 +69,7 @@ func handleAddPaymentCommand(args []string) {
 		fmt.Print("Укажите сумму\n")
 		return
 	}
-	amount, err := currency.NewAmount(args[2], "RUB")
+	amount, err := currency.NewAmount(strings.Replace(args[2], ",", ".", 1), "RUB")
 
 	payment := apartment.NewCommunalPayment(month, t, amount)
 
@@ -126,8 +133,16 @@ func PrintTree(payments apartment.CommunalPayments) {
 func PrintTable(payments apartment.CommunalPayments) {
 	tree := BuildTree(payments)
 
-	for y, subtree := range tree {
-		fmt.Printf("%s", y)
+	var years []string
+	for key, _ := range tree {
+		years = append(years, key)
+	}
+	sort.Strings(years)
+
+	for _, year := range years {
+		fmt.Printf("%s", year)
+
+		subtree := tree[year]
 
 		types := *apartment.GetTypes()
 		for _, _type := range types {
@@ -135,19 +150,24 @@ func PrintTable(payments apartment.CommunalPayments) {
 		}
 		fmt.Printf("%15s\n", "Итого")
 
-		var keys []string
+		var months []string
 		for key, _ := range subtree {
-			keys = append(keys, key)
+			months = append(months, key)
 		}
-		sort.Strings(keys)
+		sort.Strings(months)
 
-		for _, m := range keys {
-			fmt.Printf("  %s", m)
+		for _, month := range months {
+			fmt.Printf("  %s", month)
 
-			monthPayments := tree[y][m]
+			monthPayments := tree[year][month]
 
 			for _, _type := range types {
-				fmt.Printf("%15s", monthPayments.FindByType(_type).Amount.Number())
+				payment := monthPayments.FindByType(_type)
+				if payment != nil {
+					fmt.Printf("%15s", monthPayments.FindByType(_type).Amount.Number())
+				} else {
+					fmt.Printf("%15s", " ")
+				}
 			}
 
 			fmt.Printf("%15s", monthPayments.GetTotal().Number())
