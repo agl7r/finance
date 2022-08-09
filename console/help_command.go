@@ -1,4 +1,4 @@
-package main
+package console
 
 import "fmt"
 
@@ -9,6 +9,7 @@ func (c *HelpCommand) Names() []string {
 }
 
 func (c *HelpCommand) Execute(args []string) error {
+	fmt.Println("help - эта справка")
 	fmt.Println("add-payment - добавить коммунальный платёж")
 	fmt.Println("payments - показать список платежей")
 	return nil
