@@ -18,12 +18,18 @@ func (c *AddPaymentCommand) Names() []string {
 
 func (c *AddPaymentCommand) Execute(args []string) error {
 	if len(args) < 1 {
-		return errors.New("Укажите месяц в формате 2022-04\n")
+		fmt.Print("Укажите месяц в формате 2022-04: ")
+		var dateInput string
+		_, err := fmt.Scanf("%s", &dateInput)
+		if err != nil {
+			return errors.New("не удалось получить значение месяца")
+		}
+		args = append(args, dateInput)
 	}
 	monthId := args[0]
 	date, err := time.Parse("2006-01", monthId)
 	if err != nil {
-		return errors.New("Укажите месяц в формате 2022-04\n")
+		return errors.New("неверный формат месяца (пример: 2022-04)")
 	}
 	month := &apartment.Month{Id: date.Format("2006-01")}
 
@@ -35,7 +41,14 @@ func (c *AddPaymentCommand) Execute(args []string) error {
 			}
 			typesOutput = typesOutput + fmt.Sprintf("%d: %s", _type.Id, _type.Title)
 		}
-		return fmt.Errorf("Укажите тип в формате идентификатора (%s)\n", typesOutput)
+		fmt.Printf("Укажите тип в формате идентификатора (%s): ", typesOutput)
+
+		var typeInput string
+		_, err := fmt.Scanf("%s", &typeInput)
+		if err != nil {
+			return errors.New("Не удалось получить значение")
+		}
+		args = append(args, typeInput)
 	}
 	typeId, err := strconv.Atoi(args[1])
 	if err != nil {
@@ -49,7 +62,13 @@ func (c *AddPaymentCommand) Execute(args []string) error {
 	}
 
 	if len(args) < 3 {
-		return fmt.Errorf("Укажите сумму\n")
+		fmt.Print("Укажите сумму: ")
+		var amountInput string
+		_, err := fmt.Scanf("%s", &amountInput)
+		if err != nil {
+			return errors.New("Не удалось получить значение")
+		}
+		args = append(args, amountInput)
 	}
 	amount, err := currency.NewAmount(strings.Replace(args[2], ",", ".", 1), "RUB")
 

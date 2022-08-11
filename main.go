@@ -9,7 +9,7 @@ func main() {
 	command := console.FindCommand()
 	err := console.ExecuteCommand(command)
 	if err != nil {
-		fmt.Printf("%s", err)
+		fmt.Printf("Ошибка: %s\n", err)
 	}
 }
 
