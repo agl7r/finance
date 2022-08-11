@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 const jsonFilePath = "var/apartment/payments.json"
@@ -30,6 +32,24 @@ func (r *PaymentRepository) FindByMonth(m *Month) (CommunalPayments, error) {
 	allPayments, _ := r.FindAll()
 	for _, payment := range allPayments {
 		if payment.Month.Id == m.Id {
+			payments = append(payments, payment)
+		}
+	}
+
+	return payments, nil
+}
+
+func (r *PaymentRepository) FindByYear(year int) (CommunalPayments, error) {
+	var payments CommunalPayments
+
+	allPayments, _ := r.FindAll()
+	for _, payment := range allPayments {
+		parts := strings.Split(payment.Month.Id,"-")
+		paymentYear, _ := strconv.Atoi(parts[0])
+		if paymentYear < 100 {
+			paymentYear += 2000
+		}
+		if paymentYear == year {
 			payments = append(payments, payment)
 		}
 	}

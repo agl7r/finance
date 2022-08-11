@@ -1,9 +1,11 @@
 package console
 
 import (
+	"errors"
 	"fmt"
 	"github.com/agl7r/finance/apartment"
 	"sort"
+	"strconv"
 )
 
 type ShowPayments struct {}
@@ -14,11 +16,35 @@ func (c *ShowPayments) Names() []string  {
 
 func (c *ShowPayments) Execute(args []string) error {
 	repository := apartment.NewPaymentRepository()
-	payments, _ := repository.FindAll()
 
+	year := 0
 	showMode := "table"
-	if len(args) > 0 {
-		showMode = args[0]
+
+	var payments apartment.CommunalPayments
+
+	for _, arg := range args {
+		if arg == "table" || arg == "tree" {
+			showMode = arg
+		} else {
+			var err error
+			year, err = strconv.Atoi(arg)
+			if err != nil {
+				return errors.New("не удалось распознать год")
+			}
+			if year < 100 {
+				year += 2000
+			}
+		}
+	}
+
+	if year > 0 {
+		payments, _ = repository.FindByYear(year)
+	} else {
+		payments, _ = repository.FindAll()
+	}
+
+	if len(payments) == 0 {
+		fmt.Println("Оплаты не найдены.")
 	}
 
 	if showMode == "tree" {
