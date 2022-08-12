@@ -3,7 +3,6 @@ package console
 import (
 	"fmt"
 	"golang.org/x/exp/slices"
-	"os"
 )
 
 type Command interface {
@@ -33,21 +32,21 @@ func (c *NotFoundCommand) Execute(args []string) error {
 	return nil
 }
 
-func getCommandName() string {
-	if len(os.Args) > 1 {
-		commandName := os.Args[1]
+func getCommandName(args []string) string {
+	if len(args) > 0 {
+		commandName := args[0]
 		return commandName
 	}
 	return ""
 }
 
-func FindCommand() Command {
+func FindCommand(args []string) Command {
 	var commands []Command
 	commands = append(commands, new(HelpCommand))
 	commands = append(commands, new(AddPaymentCommand))
 	commands = append(commands, new(ShowPayments))
 
-	commandName := getCommandName()
+	commandName := getCommandName(args)
 	if commandName == "" {
 		return new(EmptyCommand)
 	}
@@ -61,11 +60,7 @@ func FindCommand() Command {
 	return new(NotFoundCommand)
 }
 
-func ExecuteCommand(command Command) error {
-	var args []string
-	if len(os.Args) > 2 {
-		args = os.Args[2:]
-	}
+func ExecuteCommand(command Command, args []string) error {
 	return command.Execute(args)
 }
 
