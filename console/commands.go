@@ -43,6 +43,7 @@ func getCommandName(args []string) string {
 func FindCommand(args []string) Command {
 	var commands []Command
 	commands = append(commands, new(HelpCommand))
+	commands = append(commands, new(StatusCommand))
 	commands = append(commands, new(AddPaymentCommand))
 	commands = append(commands, new(ShowPayments))
 

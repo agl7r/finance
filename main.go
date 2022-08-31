@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"github.com/agl7r/finance/config"
 	"github.com/agl7r/finance/console"
 	"github.com/joho/godotenv"
 	"os"
-	"flag"
+	"strconv"
 )
 
 func main() {
@@ -14,10 +16,11 @@ func main() {
 	flag.Parse()
 
 	_ = godotenv.Load(".env.local")
-	dsn := os.Getenv("DSN")
+	config.Config.Dsn = os.Getenv("DSN")
+	config.Config.Port, _ = strconv.Atoi(os.Getenv("PORT"))
 
 	if verbose {
-		fmt.Printf("dsn: %s\n", dsn)
+		fmt.Printf("dsn: %s\n", config.Config.Dsn)
 	}
 
 	args := flag.Args()

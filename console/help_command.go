@@ -1,6 +1,8 @@
 package console
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type HelpCommand struct {}
 
