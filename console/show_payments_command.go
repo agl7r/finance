@@ -6,6 +6,7 @@ import (
 	"github.com/agl7r/finance/apartment"
 	"sort"
 	"strconv"
+	"log"
 )
 
 type ShowPayments struct {}
@@ -37,10 +38,17 @@ func (c *ShowPayments) Execute(args []string) error {
 		}
 	}
 
+	var err error
 	if year > 0 {
-		payments, _ = repository.FindByYear(year)
+		payments, err = repository.FindByYear(year)
+		if err != nil {
+			log.Panic(err)
+		}
 	} else {
-		payments, _ = repository.FindAll()
+		payments, err = repository.FindAll()
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 
 	if len(payments) == 0 {

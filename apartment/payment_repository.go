@@ -1,16 +1,25 @@
 package apartment
 
 import (
-	"encoding/json"
-	"io/ioutil"
-	"sort"
+	"database/sql"
+	"fmt"
+	"github.com/agl7r/finance/config"
+	"github.com/bojanz/currency"
+	_ "github.com/go-sql-driver/mysql"
 	"strconv"
 	"strings"
 )
 
-const jsonFilePath = "var/apartment/payments.json"
-
 type PaymentRepository struct {
+}
+
+func getDB() *sql.DB {
+	dsn := config.Config.Dsn
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		panic(err)
+	}
+	return db
 }
 
 func NewPaymentRepository() *PaymentRepository {
@@ -20,8 +29,34 @@ func NewPaymentRepository() *PaymentRepository {
 func (r *PaymentRepository) FindAll() (CommunalPayments, error) {
 	var payments CommunalPayments
 
-	content, _ := ioutil.ReadFile(jsonFilePath)
-	_ = json.Unmarshal(content, &payments)
+	db := getDB()
+
+	res, err := db.Query("SELECT * FROM payments")
+	if res != nil {
+		defer res.Close()
+	}
+	if err != nil {
+		return payments, err
+	}
+
+	for res.Next() {
+		var payment CommunalPayment
+
+		var monthId string
+		var typeId int
+		var amount string
+
+		err := res.Scan(&monthId, &typeId, &amount)
+		if err != nil {
+			return payments, err
+		}
+
+		payment.Month = &Month{Id: monthId}
+		payment.Type = GetTypes().GetById(typeId)
+		payment.Amount, _ = currency.NewAmount(amount, "RUB")
+
+		payments = append(payments, &payment)
+	}
 
 	return payments, nil
 }
@@ -29,7 +64,10 @@ func (r *PaymentRepository) FindAll() (CommunalPayments, error) {
 func (r *PaymentRepository) FindByMonth(m *Month) (CommunalPayments, error) {
 	var payments CommunalPayments
 
-	allPayments, _ := r.FindAll()
+	allPayments, err := r.FindAll()
+	if err != nil {
+		return payments, err
+	}
 	for _, payment := range allPayments {
 		if payment.Month.Id == m.Id {
 			payments = append(payments, payment)
@@ -44,7 +82,7 @@ func (r *PaymentRepository) FindByYear(year int) (CommunalPayments, error) {
 
 	allPayments, _ := r.FindAll()
 	for _, payment := range allPayments {
-		parts := strings.Split(payment.Month.Id,"-")
+		parts := strings.Split(payment.Month.Id, "-")
 		paymentYear, _ := strconv.Atoi(parts[0])
 		if paymentYear < 100 {
 			paymentYear += 2000
@@ -70,31 +108,15 @@ func (r *PaymentRepository) FindByMonthAndType(m *Month, t Type) (CommunalPaymen
 	return payments, nil
 }
 
-func (r *PaymentRepository) Save(p *CommunalPayment) error {
-	var payments []*CommunalPayment
+func (r *PaymentRepository) Save(payment *CommunalPayment) error {
+	db := getDB()
 
-	content, _ := ioutil.ReadFile(jsonFilePath)
-	_ = json.Unmarshal(content, &payments)
-
-	found := false
-	for idx, payment := range payments {
-		if payment.Month.Id == p.Month.Id && payment.Type.Id == p.Type.Id {
-			payments[idx] = p
-			found = true
-		}
+	amount := payment.Amount.Number()
+	_, err := db.Query(fmt.Sprintf("INSERT INTO payments VALUES ('%s', %d, %s) ON DUPLICATE KEY UPDATE amount = %s",
+		payment.Month.Id, payment.Type.Id, amount, amount))
+	if err != nil {
+		return err
 	}
-
-	if found == false {
-		payments = append(payments, p)
-	}
-
-	sort.Slice(payments, func(i, j int) bool {
-		return payments[i].Month.Id < payments[j].Month.Id
-	})
-
-	newContent, _ := json.MarshalIndent(payments, "", " ")
-
-	_ = ioutil.WriteFile(jsonFilePath, newContent, 0644)
 
 	return nil
 }
