@@ -6,7 +6,7 @@ import (
 )
 
 type Month struct {
-	Id string
+	Id string `json:"id"`
 }
 
 func (month *Month) String() string {

@@ -6,8 +6,8 @@ import (
 )
 
 type Type struct {
-	Id    int
-	Title string
+	Id    int `json:"id"`
+	Title string `json:"title"`
 }
 
 func (_type *Type) String() string {

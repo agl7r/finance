@@ -78,7 +78,7 @@ func (r *PaymentRepository) FindByMonth(m *Month) (CommunalPayments, error) {
 }
 
 func (r *PaymentRepository) FindByYear(year int) (CommunalPayments, error) {
-	var payments CommunalPayments
+	payments := CommunalPayments{}
 
 	allPayments, _ := r.FindAll()
 	for _, payment := range allPayments {

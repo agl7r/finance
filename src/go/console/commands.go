@@ -47,6 +47,7 @@ func FindCommand(args []string) Command {
 	commands = append(commands, new(AddPaymentCommand))
 	commands = append(commands, new(ShowPayments))
 	commands = append(commands, new(FetchExchangeRatesCommand))
+	commands = append(commands, new(ServerCommand))
 
 	commandName := getCommandName(args)
 	if commandName == "" {
