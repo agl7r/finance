@@ -43,8 +43,17 @@ const isCurrentPath = (menuItem) => {
     </q-drawer>
 
     <q-page-container>
-      <router-view></router-view>
+      <q-page padding>
+        <router-view></router-view>
+      </q-page>
     </q-page-container>
 
   </q-layout>
 </template>
+
+<style>
+h1 {
+  font-size: 2rem;
+  line-height: 2rem;
+}
+</style>

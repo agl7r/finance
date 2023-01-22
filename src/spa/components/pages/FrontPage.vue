@@ -1,5 +1,3 @@
 <template>
-  <q-page padding>
-    Главная
-  </q-page>
+  Главная
 </template>
